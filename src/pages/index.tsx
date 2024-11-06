@@ -2,8 +2,58 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
+import { useState } from 'react';
+import { useSignMessage, useWriteContract } from 'wagmi';
+import { signMessage , signTypedData } from '@wagmi/core'
+import  constants from '../../abi.json'
+import { config } from '../wagmi';
 
 const Home: NextPage = () => {
+  const [vote, setVote] = useState<boolean | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
+  const { writeContractAsync } = useWriteContract();
+
+  // Hook para firmar mensajes con wagmi
+  const { signMessageAsync } = useSignMessage();
+
+  const handleVote = async (userVote: boolean) => {
+    setVote(userVote);
+    const data = await signMessageAsync({message:'Yes'});
+    console.log(data as `0x${string}`);
+    // Crear el mensaje JSON
+    // const message = JSON.stringify({ vote: userVote ? 'yes' : 'no' });
+
+    // Firmar el mensaje
+    // try {
+    //   // const signature = await signMessage(config, { message });
+    //   const signature = await signMessageAsync({})
+    //   console.log('El usuario firmo: ' + signature as `x0${string}`)
+    //   setSignature(signature  as `x0${string}`);
+    // } catch (error) {
+    //   console.error('Error al firmar el mensaje:', error);
+    // }
+  };
+
+  // Llamar a la función del contrato después de que la firma sea exitosa
+  const submitVote = async () => {
+    if (signature && vote !== null) {
+      try {
+        const hashTrs = await writeContractAsync({ 
+          abi: constants.abi,
+          address: constants.address as `0x${string}`,
+          functionName: 'vote',
+          args: [
+            vote,
+            signature
+          ],
+       })
+        console.log('Voto enviado con éxito: ' + hashTrs);
+      } catch (error) {
+        console.error('Error al enviar el voto:', error);
+      }
+    }
+  };
+  
   return (
     <div className={styles.container}>
       <Head>
@@ -17,59 +67,12 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <ConnectButton />
-
-        <h1 className={styles.title}>
-          Welcome to <a href="">RainbowKit</a> + <a href="">wagmi</a> +{' '}
-          <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a className={styles.card} href="https://rainbowkit.com">
-            <h2>RainbowKit Documentation &rarr;</h2>
-            <p>Learn how to customize your wallet connection flow.</p>
-          </a>
-
-          <a className={styles.card} href="https://wagmi.sh">
-            <h2>wagmi Documentation &rarr;</h2>
-            <p>Learn how to interact with Ethereum.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://github.com/rainbow-me/rainbowkit/tree/main/examples"
-          >
-            <h2>RainbowKit Examples &rarr;</h2>
-            <p>Discover boilerplate example RainbowKit projects.</p>
-          </a>
-
-          <a className={styles.card} href="https://nextjs.org/docs">
-            <h2>Next.js Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-          >
-            <h2>Next.js Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <h1>Votación en Blockchain</h1>
+        <button onClick={() => handleVote(true)}>Votar Sí</button>
+        <button onClick={() => handleVote(false)}>Votar No</button>
+        <button onClick={submitVote} disabled={!signature}>
+          Enviar Voto
+        </button>
       </main>
 
       <footer className={styles.footer}>
@@ -82,3 +85,4 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
