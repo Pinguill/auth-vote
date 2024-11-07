@@ -3,7 +3,7 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import { useEffect, useState } from 'react';
-import { useSignMessage, useWriteContract, useReadContract } from 'wagmi';
+import { useSignMessage, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { signMessage , signTypedData } from '@wagmi/core'
 import  constants from '../../abi.json'
 import { config } from '../wagmi';
@@ -12,6 +12,7 @@ import { AbiCoder } from 'ethers';
 const Home: NextPage = () => {
   const [vote, setVote] = useState<boolean | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
+  const [hashTrx, setHashTrx] = useState<string | null>(null);
   const [yesVotes, setYesVotes] = useState<string | null>(null);
   const [noVotes, setNoVotes] = useState<string | null>(null);
   const { writeContractAsync } = useWriteContract();
@@ -30,12 +31,6 @@ const Home: NextPage = () => {
 
 
   useEffect( () => {
-    if(resultReadNo){
-      console.log("No: ", resultReadNo)
-    }
-    if(resultReadYes){
-      console.log("Yes: ", resultReadYes)
-    }
     setNoVotes(String(resultReadNo.data))
     setYesVotes(String(resultReadYes.data))
   }, [resultReadNo, resultReadYes]);
@@ -73,11 +68,25 @@ const Home: NextPage = () => {
           ],
        })
         console.log('Voto enviado con éxito: ' + hashTrs);
+        setHashTrx(hashTrs)
       } catch (error) {
         console.error('Error al enviar el voto:', error);
       }
     }
   };
+  
+
+  const resultBlocks = useWaitForTransactionReceipt({
+    hash: hashTrx as `0x${string}`,
+    confirmations: 2,
+    
+  });
+
+  useEffect( () => {
+    console.log(resultBlocks);
+    resultReadNo.refetch();
+    resultReadYes.refetch();
+  }, [resultBlocks]);
   
   return (
     <div className={styles.container}>
