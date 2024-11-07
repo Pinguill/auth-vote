@@ -1,6 +1,11 @@
 {
-    "address": "0x52d95991894D7f20497A0D75F7ED4502ffDb52ab",
+    "address": "0x5E38A0F17aF81e264e3778dB216779643914679b",
     "abi": [
+        {
+            "inputs": [],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
         {
             "inputs": [
                 {
@@ -9,9 +14,9 @@
                     "type": "bool"
                 },
                 {
-                    "internalType": "bytes32",
+                    "internalType": "string",
                     "name": "_signatureHash",
-                    "type": "bytes32"
+                    "type": "string"
                 }
             ],
             "name": "vote",
@@ -36,13 +41,39 @@
                 },
                 {
                     "indexed": false,
-                    "internalType": "bytes32",
+                    "internalType": "string",
                     "name": "signatureHash",
-                    "type": "bytes32"
+                    "type": "string"
                 }
             ],
             "name": "VoteCast",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "getNoVotes",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getYesVotes",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
             "inputs": [
@@ -87,9 +118,9 @@
             "name": "voteSignatureHash",
             "outputs": [
                 {
-                    "internalType": "bytes32",
+                    "internalType": "string",
                     "name": "",
-                    "type": "bytes32"
+                    "type": "string"
                 }
             ],
             "stateMutability": "view",

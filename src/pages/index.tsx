@@ -2,36 +2,61 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import { useState } from 'react';
-import { useSignMessage, useWriteContract } from 'wagmi';
+import { useEffect, useState } from 'react';
+import { useSignMessage, useWriteContract, useReadContract } from 'wagmi';
 import { signMessage , signTypedData } from '@wagmi/core'
 import  constants from '../../abi.json'
 import { config } from '../wagmi';
+import { AbiCoder } from 'ethers';
 
 const Home: NextPage = () => {
   const [vote, setVote] = useState<boolean | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
+  const [yesVotes, setYesVotes] = useState<string | null>(null);
+  const [noVotes, setNoVotes] = useState<string | null>(null);
   const { writeContractAsync } = useWriteContract();
+
+  const resultReadYes = useReadContract({
+    abi: constants.abi,
+    address: constants.address as `0x${string}`,
+    functionName: 'getYesVotes'
+  });
+
+  const resultReadNo = useReadContract({
+    abi: constants.abi,
+    address: constants.address as `0x${string}`,
+    functionName: 'getNoVotes'
+  });
+
+
+  useEffect( () => {
+    if(resultReadNo){
+      console.log("No: ", resultReadNo)
+    }
+    if(resultReadYes){
+      console.log("Yes: ", resultReadYes)
+    }
+    setNoVotes(String(resultReadNo.data))
+    setYesVotes(String(resultReadYes.data))
+  }, [resultReadNo, resultReadYes]);
 
   // Hook para firmar mensajes con wagmi
   const { signMessageAsync } = useSignMessage();
 
   const handleVote = async (userVote: boolean) => {
     setVote(userVote);
-    const data = await signMessageAsync({message:'Yes'});
-    console.log(data as `0x${string}`);
+
     // Crear el mensaje JSON
-    // const message = JSON.stringify({ vote: userVote ? 'yes' : 'no' });
+    const message = JSON.stringify({ vote: userVote ? 'yes' : 'no' });
 
     // Firmar el mensaje
-    // try {
-    //   // const signature = await signMessage(config, { message });
-    //   const signature = await signMessageAsync({})
-    //   console.log('El usuario firmo: ' + signature as `x0${string}`)
-    //   setSignature(signature  as `x0${string}`);
-    // } catch (error) {
-    //   console.error('Error al firmar el mensaje:', error);
-    // }
+    try {
+      const signature = await signMessageAsync({message})
+      console.log('El usuario firmo: ' + signature as `x0${string}`)
+      setSignature(signature  as `x0${string}`);
+    } catch (error) {
+      console.error('Error al firmar el mensaje:', error);
+    }
   };
 
   // Llamar a la función del contrato después de que la firma sea exitosa
@@ -68,6 +93,10 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <ConnectButton />
         <h1>Votación en Blockchain</h1>
+        <div>
+          <b>SI: {yesVotes}</b>
+          <b>NO: {noVotes}</b>
+        </div>
         <button onClick={() => handleVote(true)}>Votar Sí</button>
         <button onClick={() => handleVote(false)}>Votar No</button>
         <button onClick={submitVote} disabled={!signature}>
